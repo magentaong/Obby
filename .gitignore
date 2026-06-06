@@ -2,7 +2,9 @@ __pycache__/
 *.pyc
 .env
 .venv/
+
 obby_config.py
 .obby/
+obby.egg-info
 
 .DS_Store

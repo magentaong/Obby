@@ -20,12 +20,12 @@ from rich.progress_bar import ProgressBar
 from rich.rule import Rule
 from rich.table import Table
 from rich.text import Text
+from .models import AppConfig, NoteContext, ProgressSummary, Task, TaskKind
 
 from .commands import (
     CATEGORY_ALIASES,
     CATEGORY_ORDER,
     COMMANDS,
-    CommandSpec,
     commands_by_category,
     resolve_category,
 )
@@ -58,7 +58,6 @@ def select_command(category: str | None = None) -> str | None:
     ]
     choices.append(questionary.Choice(title="[ back ]", value="back"))
     return questionary.select(title, choices=choices).ask()
-from .models import AppConfig, NoteContext, ProgressSummary, Task, TaskKind
 
 
 console = Console()
