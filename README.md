@@ -11,6 +11,17 @@ For now, the reason for implementing the LLM within this system is so that it ca
 
 The terminal UI uses rich because that makes it more fun to use :\)
 
+## Demo
+
+![obby_demo](docs/assets/obby_demo.gif)
+
+Picutres, censored cause these are my actual TODOs.
+![obby_start](docs/assets/obby_start.png)
+
+![obby_weekly](docs/assets/obby_weekly.png)
+
+![obby_urgent_optional](docs/assets/obby_optional_urgent_llm_prompt.png)
+
 ## Quick Start (30 Seconds)
 
 The fastest way to install and configure Obby:
@@ -99,7 +110,7 @@ These labels are configurable. If your notes use `## Must Ship` instead of `## R
 
 ## Safety
 
-Current version is read-only toward Obsidian. It doesn't touch your files at all. No touchy touchy.
+Current version is read-only toward Obsidian. It doesn't touch your files at all. I'm working towards eventually allowing it to modify and update Obsidian files, but for now, no touchy touchy.
 
 Future write features should be opt-in, previewed first, and probably stored in `.obby/` before touching real notes, that or it is also highly recommended to either have Obsidian Sync or use github to store your notes' version history before it gets modified.
 
@@ -171,7 +182,7 @@ Config priority:
 3. environment variables
 4. built-in defaults
 
-You can also try Obby on the included sample vault:
+You can also try Obby on the included sample vault to see how it works. Its recommended to edit and use the command `/refresh` to test out the capabilities of Obby when its running.
 
 ```zsh
 python obby.py --folder examples/sample-vault/Study --week 2
@@ -257,16 +268,6 @@ Session:
 Compatibility aliases are intentionally kept small: `/today`, `/todos`, `/ai`, `/help`, and `/quit`.
 
 Long task lists are paged in an interactive terminal. Use Left/Right arrows to move between pages and Enter/Esc to close the browser.
-
-## Screenshots / GIFs
-
-README files can show images and GIFs directly:
-
-```md
-![Obby dashboard](docs/assets/obby-dashboard.gif)
-```
-
-For videos, the usual GitHub-friendly approach is to use a screenshot or GIF as a thumbnail and link it to the video.
 
 ## Task Scope And Candidates
 
@@ -368,3 +369,4 @@ python -m unittest discover -s tests
 - Setup is still manual through `obby_config.py`.
 - Manual classification is memory-only for now.
 - Obsidian write-back is not implemented yet.
+- LLM.
