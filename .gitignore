@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+obby_config.py
+.obby/
+
+.DS_Store
