@@ -71,4 +71,6 @@ Possible commands:
 - Multi-vault support.
 - Multi-obby support.
 - More customisation.
+- Multi-select for things like classify.
+- Eventual TODO option, marking things down as complete etc.
 - Rewrite it in Go for easier distribution and installation.

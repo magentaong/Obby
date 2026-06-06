@@ -162,7 +162,11 @@ class ObbyApp:
             return True
 
         if cmd_name.startswith("/"):
-            ui.error(f"Unknown command: {cmd_name}\nType /menu to see available commands.")
+            ui.error(f"Unknown command: {cmd_name}\n")
+            if ui.console.is_terminal:
+                self.interactive_menu()
+            else:
+                ui.info("Type /menu to see available commands.")
             return True
 
         return False
@@ -295,6 +299,7 @@ class ObbyApp:
         preset = self.config.prompt_presets.get(key)
         if not preset:
             ui.error("Unknown prompt. Type /menu to see options.")
+            self.interactive_menu()
             return
         name, prompt = preset
         ui.info(f"Using: {name}")
