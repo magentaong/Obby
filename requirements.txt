@@ -1,0 +1,4 @@
+rich
+questionary
+prompt_toolkit
+requests
