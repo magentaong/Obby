@@ -13,7 +13,7 @@ from .models import AppConfig, ModuleRule, Theme
 DEFAULT_PROMPTS: dict[str, tuple[str, str]] = {
     "1": (
         "Next 2-hour focus block",
-        "What should I do next for the next 2 hours? Give me a main task, backup task, tiny task if tired, why, and evidence.",
+        "What should I do next for the next 2 hours? Give me the main tasks, backup tasks, and tiny task if tired, why, and evidence.",
     ),
     "2": (
         "List pending TODOs",
@@ -61,12 +61,7 @@ DEFAULT_IGNORE_KEYWORDS = [
     ".git",
     ".obsidian",
     "node_modules",
-    "scripts",
     "__pycache__",
-    "CTF",
-    "ctf",
-    "challenge",
-    "writeup",
 ]
 
 DEFAULT_TODO_SOURCE_KEYWORDS = [
@@ -120,26 +115,7 @@ DEFAULT_LLM_STYLE_RULES = [
     "If evidence is missing, say that Obby does not see it in the notes.",
 ]
 
-DEFAULT_MODULE_RULES = [
-    ModuleRule(
-        key="go",
-        name="Go Backend Engineering + System Design",
-        tags=["#module/go", "#go"],
-        outline_names=["Module 1"],
-    ),
-    ModuleRule(
-        key="aws",
-        name="AWS + Cloud Engineering",
-        tags=["#module/aws", "#aws"],
-        outline_names=["Module 2"],
-    ),
-    ModuleRule(
-        key="leetcode",
-        name="LeetCode + Interview Prep + React",
-        tags=["#module/leetcode", "#leetcode", "#react"],
-        outline_names=["Module 3"],
-    ),
-]
+DEFAULT_MODULE_RULES: list[ModuleRule] = []
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -287,7 +263,7 @@ def _cfg(module: ModuleType | None, attr: str, env_var: str | None, default: Any
 
 def _as_module_rules(raw: Any) -> list[ModuleRule]:
     if not raw:
-        return list(DEFAULT_MODULE_RULES)
+        return []
     rules: list[ModuleRule] = []
     for item in raw:
         if isinstance(item, ModuleRule):
@@ -301,7 +277,7 @@ def _as_module_rules(raw: Any) -> list[ModuleRule]:
                     outline_names=list(item.get("outline_names", item.get("outlines", []))),
                 )
             )
-    return rules or list(DEFAULT_MODULE_RULES)
+    return rules
 
 
 def resolve_config(args: argparse.Namespace) -> AppConfig:

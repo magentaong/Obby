@@ -342,32 +342,32 @@ def today_dashboard(
     unknown: list[Task],
     view_mode: str = "table",
 ) -> None:
-    header = Table.grid(expand=True)
-    header.add_column(ratio=2)
-    header.add_column(ratio=1)
-    header.add_row(
-        (
-            f"[bold bright_magenta]Today[/bold bright_magenta]\n"
-            f"[cyan]Week {week}/{config.total_weeks}[/cyan]\n"
-            "[grey70]scoped to configured TODO sources[/grey70]"
-        ),
-        (
-            "[bright_green]LOCAL STATUS[/bright_green]\n"
-            f"[grey82]{len(current)} current / {len(behind)} behind[/grey82]\n"
-            f"[grey70]{len(blocked)} blocked / {len(unknown)} unknown[/grey70]"
-        ),
-    )
-    console.print()
-    console.print(
-        Panel(
-            header,
-            title="[bright_magenta]TODAY DECK[/bright_magenta]",
-            border_style="bright_magenta",
-            box=HEAVY_EDGE,
-        )
-    )
-    console.print()
-
+    # header = Table.grid(expand=True)
+    # header.add_column(ratio=2)
+    # header.add_column(ratio=1)
+    # header.add_row(
+    #     (
+    #         f"[bold bright_magenta]Today[/bold bright_magenta]\n"
+    #         f"[cyan]Week {week}/{config.total_weeks}[/cyan]\n"
+    #         "[grey70]scoped to configured TODO sources[/grey70]"
+    #     ),
+    #     (
+    #         "[bright_green]LOCAL STATUS[/bright_green]\n"
+    #         f"[grey82]{len(current)} current / {len(behind)} behind[/grey82]\n"
+    #         f"[grey70]{len(blocked)} blocked / {len(unknown)} unknown[/grey70]"
+    #     ),
+    # )
+    # console.print()
+    # console.print(
+    #     Panel(
+    #         header,
+    #         title="[bright_magenta]TODAY DECK[/bright_magenta]",
+    #         border_style="bright_magenta",
+    #         box=HEAVY_EDGE,
+    #     )
+    # )
+    # console.print()
+    
     tiles = Table.grid(expand=True)
     tiles.add_column(ratio=1)
     tiles.add_column(ratio=1)
@@ -401,31 +401,31 @@ def weekly_dashboard(
     stretch: list[Task],
     view_mode: str = "table",
 ) -> None:
-    header = Table.grid(expand=True)
-    header.add_column(ratio=2)
-    header.add_column(ratio=1)
-    header.add_row(
-        (
-            f"[bold bright_magenta]Week {week}[/bold bright_magenta]\n"
-            f"[cyan]{config.use_case} planning[/cyan]\n"
-            "[grey70]scoped to configured TODO sources[/grey70]"
-        ),
-        (
-            "[bright_green]WEEK LOCK[/bright_green]\n"
-            f"[grey82]{len(current)} current / {len(behind)} behind[/grey82]\n"
-            f"[grey70]{len(upcoming)} upcoming / {len(stretch)} stretch[/grey70]"
-        ),
-    )
-    console.print()
-    console.print(
-        Panel(
-            header,
-            title="[bright_magenta]WEEKLY DECK[/bright_magenta]",
-            border_style="bright_magenta",
-            box=HEAVY_EDGE,
-        )
-    )
-    console.print()
+    # header = Table.grid(expand=True)
+    # header.add_column(ratio=2)
+    # header.add_column(ratio=1)
+    # header.add_row(
+    #     (
+    #         f"[bold bright_magenta]Week {week}[/bold bright_magenta]\n"
+    #         f"[cyan]{config.use_case} planning[/cyan]\n"
+    #         "[grey70]scoped to configured TODO sources[/grey70]"
+    #     ),
+    #     (
+    #         "[bright_green]WEEK LOCK[/bright_green]\n"
+    #         f"[grey82]{len(current)} current / {len(behind)} behind[/grey82]\n"
+    #         f"[grey70]{len(upcoming)} upcoming / {len(stretch)} stretch[/grey70]"
+    #     ),
+    # )
+    # console.print()
+    # console.print(
+    #     Panel(
+    #         header,
+    #         title="[bright_magenta]WEEKLY DECK[/bright_magenta]",
+    #         border_style="bright_magenta",
+    #         box=HEAVY_EDGE,
+    #     )
+    # )
+    # console.print()
 
     lanes = Table(
         title="Week Lanes",

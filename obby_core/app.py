@@ -163,7 +163,10 @@ class ObbyApp:
 
         if cmd_name.startswith("/"):
             ui.error(f"Unknown command: {cmd_name}\n")
-            self.interactive_menu()
+            if ui.console.is_terminal:
+                self.interactive_menu()
+            else:
+                ui.info("Type /menu to see available commands.")
             return True
 
         return False
