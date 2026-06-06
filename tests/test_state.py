@@ -1,5 +1,4 @@
 import unittest
-import json
 from pathlib import Path
 import tempfile
 from obby_core.state import LocalState

@@ -1,8 +1,7 @@
 import unittest
 from pathlib import Path
-import tempfile
 from obby_core.scanner import _parse_file, scan_notes
-from obby_core.models import NoteContext, AppConfig, TaskKind
+from obby_core.models import NoteContext, AppConfig
 
 class TestScanner(unittest.TestCase):
     def setUp(self):
