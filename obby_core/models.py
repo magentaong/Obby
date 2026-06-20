@@ -7,6 +7,7 @@ from pathlib import Path
 
 class TaskKind(str, Enum):
     REQUIRED = "required"
+    URGENT = "urgent"
     STRETCH = "stretch"
     OPTIONAL = "optional"
     IDEA = "idea"
@@ -78,8 +79,13 @@ class Task:
     week: int | None = None
     module: str | None = None
     kind: TaskKind = TaskKind.UNKNOWN
+    all_kinds: list[TaskKind] = field(default_factory=list)
     classification_reason: str = "unclassified"
     llm_reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.all_kinds:
+            self.all_kinds = [self.kind]
 
     @property
     def source_label(self) -> str:

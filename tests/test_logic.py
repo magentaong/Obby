@@ -27,6 +27,27 @@ class TestLogic(unittest.TestCase):
         classify_task(task, self.config)
         self.assertEqual(task.kind, TaskKind.REQUIRED)
 
+    def test_post_init_all_kinds_default(self):
+        """Verifies default behavior of all_kinds on Task."""
+        task = Task(id=1, text="Test", source_file=Path("x.md"), line_number=1, checked=False)
+        self.assertEqual(task.all_kinds, [TaskKind.UNKNOWN])
+        
+        task2 = Task(id=2, text="Test", source_file=Path("x.md"), line_number=1, checked=False, kind=TaskKind.STRETCH)
+        self.assertEqual(task2.all_kinds, [TaskKind.STRETCH])
+
+    def test_multiple_kinds_classification(self):
+        """Verifies that multiple kinds are matched and prioritized correctly."""
+        self.config.task_type_tags = {
+            "required": ["#must"],
+            "stretch": ["#bonus"],
+        }
+        task = Task(id=1, text="Test #must #bonus", source_file=Path("x.md"), line_number=1, checked=False,
+                    tags=["#must", "#bonus"])
+        classify_task(task, self.config)
+        self.assertEqual(task.kind, TaskKind.REQUIRED)
+        self.assertEqual(task.all_kinds, [TaskKind.REQUIRED, TaskKind.STRETCH])
+
+
     def test_week_resolution_from_path(self):
         """Verifies week inference from file paths."""
         ctx = NoteContext(target_folder=Path("."))

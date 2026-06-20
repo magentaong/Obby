@@ -287,6 +287,7 @@ Rules for this reply:
 - If asked who you are, say you are {config.app_name}, the user's local-first Obsidian planning assistant.
 - Stay grounded in the user's extracted notes when discussing tasks, plans, deadlines, or priorities.
 - If something is not visible in the notes, say that {config.app_name} does not see it in the notes.
+- Do not state that you are {config.app_name} unless prompted.
 
 Style rules:
 {style_rules or "- No extra style rules configured."}
