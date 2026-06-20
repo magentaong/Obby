@@ -9,16 +9,32 @@ def classify_task(task: Task, config: AppConfig) -> Task:
     matched_kinds: set[TaskKind] = set()
     reasons: list[str] = []
 
-    # Tag-based matching
+    # Tag-based matching using configured tag lists
+    tag_mapping = {
+        TaskKind.URGENT: list(config.urgent_tags),
+        TaskKind.REQUIRED: list(config.required_tags),
+        TaskKind.BLOCKED: list(config.blocked_tags),
+        TaskKind.STRETCH: list(config.stretch_tags),
+        TaskKind.OPTIONAL: list(config.optional_tags),
+    }
+    
+    # Fallback/merge values in config.task_type_tags for flexibility
     for kind_name, kind_tags in config.task_type_tags.items():
+        try:
+            kind = TaskKind(kind_name)
+            if kind not in tag_mapping or not tag_mapping[kind]:
+                tag_mapping[kind] = list(kind_tags)
+            else:
+                for tag in kind_tags:
+                    if tag not in tag_mapping[kind]:
+                        tag_mapping[kind].append(tag)
+        except ValueError:
+            reasons.append(f"Tag-matched unknown kind: {kind_name}")
+
+    for kind, kind_tags in tag_mapping.items():
         if any(tag.lower().strip() in tags for tag in kind_tags):
-            try:
-                kind = TaskKind(kind_name)
-                matched_kinds.add(kind)
-                reasons.append(f"Tag-matched {kind_name}")
-            except ValueError:
-                # If the config has a key not in TaskKind, we log reason but don't crash
-                reasons.append(f"Tag-matched unknown kind: {kind_name}")
+            matched_kinds.add(kind)
+            reasons.append(f"Tag-matched {kind.value}")
 
     # Heading-based matching
     heading_text = " > ".join(task.heading_path).lower()

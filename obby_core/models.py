@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -65,6 +66,14 @@ class AppConfig:
     task_view: str = "table"
     theme: Theme = field(default_factory=Theme)
     xp_rules: dict[str, int] = field(default_factory=dict)
+    today_tags: list[str] = field(default_factory=list)
+    urgent_tags: list[str] = field(default_factory=list)
+    required_tags: list[str] = field(default_factory=list)
+    blocked_tags: list[str] = field(default_factory=list)
+    optional_tags: list[str] = field(default_factory=list)
+    stretch_tags: list[str] = field(default_factory=list)
+    week_tag_pattern: str = ""
+    due_date_pattern: str = ""
 
 
 @dataclass
@@ -82,6 +91,7 @@ class Task:
     all_kinds: list[TaskKind] = field(default_factory=list)
     classification_reason: str = "unclassified"
     llm_reason: str | None = None
+    due_date: datetime.date | None = None
 
     def __post_init__(self) -> None:
         if not self.all_kinds:

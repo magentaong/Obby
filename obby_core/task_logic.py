@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import re
 from collections.abc import Iterable
 from typing import TypeVar
@@ -109,23 +110,35 @@ def active_kind_tasks(tasks: Iterable[Task], config: AppConfig, week: int, kind:
 # ./dashboard and ./today does not display the dashboard for the day/week
 # should figure out how to customise this so its not as frustrating
 def is_today_task(task: Task, config: AppConfig, week: int) -> bool:
-    # 1. Explicit #today or #daily or #urgent tags
-    if any(t.lower().strip() in {"#today", "#daily", "#urgent"} for t in task.tags):
-        return True
-        
-    # 2. Formally classified as URGENT
-    if TaskKind.URGENT in task.all_kinds:
+    if task.checked:
+        return False
+
+    tags = {t.lower().strip() for t in task.tags}
+
+    # 1. Tagged with #today (or today_tags from config)
+    today_tags_set = {t.lower().strip() for t in config.today_tags}
+    if any(t in tags for t in today_tags_set):
         return True
 
-    # 3. Source file is a 'Today' note (e.g., Today.md, 2026-06-06.md)
-    # We check if the source filename contains 'today' or 'daily'
-    # or matches a date pattern (basic check)
+    # 2. Tagged with #urgent (or urgent_tags from config) or formally classified as URGENT
+    urgent_tags_set = {t.lower().strip() for t in config.urgent_tags}
+    if any(t in tags for t in urgent_tags_set) or TaskKind.URGENT in task.all_kinds:
+        return True
+
+    # 3. Due today or overdue
+    if task.due_date:
+        if task.due_date <= datetime.date.today():
+            return True
+
+    # 4. Required and tagged for the current week
+    if TaskKind.REQUIRED in task.all_kinds and task.week == week:
+        return True
+
+    # 5. Pinned or explicitly prioritized source file
     filename = task.source_file.name.lower()
     if "today" in filename or "daily" in filename:
         return True
         
-    # 3. Handle specific active sources like 'Inbox' as today's tasks if they are active
-    # but only if they don't have a future week tag.
     if "inbox" in filename and (task.week is None or task.week <= week):
         return True
 
@@ -136,9 +149,7 @@ def today_tasks(tasks: Iterable[Task], config: AppConfig, week: int) -> list[Tas
     """Tasks specifically scoped for today's immediate focus."""
     filtered = [
         t for t in tasks 
-        if (TaskKind.REQUIRED in t.all_kinds or TaskKind.URGENT in t.all_kinds) 
-        and is_active_task(t, config, week) 
-        and is_today_task(t, config, week)
+        if not t.checked and is_today_task(t, config, week)
     ]
     return sort_tasks(filtered, config, week)
 

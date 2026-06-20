@@ -1,3 +1,4 @@
+import datetime
 import unittest
 from pathlib import Path
 from obby_core.models import Task, TaskKind, AppConfig, NoteContext
@@ -82,6 +83,51 @@ class TestLogic(unittest.TestCase):
         self.assertEqual(sorted_tasks[0].text, "Current")
         self.assertEqual(sorted_tasks[1].text, "Future")
         self.assertEqual(sorted_tasks[2].text, "Past")
+
+    def test_today_tasks_filtering(self):
+        """Verifies correct filtering for today's tasks."""
+        self.config.today_tags = ["#today", "#daily"]
+        self.config.urgent_tags = ["#urgent", "🔺"]
+
+        today = datetime.date.today()
+        yesterday = today - datetime.timedelta(days=1)
+        tomorrow = today + datetime.timedelta(days=1)
+
+        tasks = [
+            # 1. Tagged with #today
+            Task(id=1, text="T1 #today", source_file=Path("a.md"), line_number=1, checked=False, tags=["#today"]),
+            # 2. Tagged with #urgent
+            Task(id=2, text="T2 #urgent", source_file=Path("a.md"), line_number=2, checked=False, tags=["#urgent"]),
+            # 3. Due today
+            Task(id=3, text="T3", source_file=Path("a.md"), line_number=3, checked=False, due_date=today),
+            # 4. Overdue
+            Task(id=4, text="T4", source_file=Path("a.md"), line_number=4, checked=False, due_date=yesterday),
+            # 5. Due in the future (should NOT appear unless current week required/tagged today)
+            Task(id=5, text="T5", source_file=Path("a.md"), line_number=5, checked=False, due_date=tomorrow),
+            # 6. Required for current week
+            Task(id=6, text="T6", source_file=Path("a.md"), line_number=6, checked=False, week=2, kind=TaskKind.REQUIRED),
+            # 7. Completed task (should NOT appear)
+            Task(id=7, text="T7 #today", source_file=Path("a.md"), line_number=7, checked=True, tags=["#today"]),
+            # 8. Optional task (should NOT appear unless tagged today/urgent)
+            Task(id=8, text="T8", source_file=Path("a.md"), line_number=8, checked=False, week=2, kind=TaskKind.OPTIONAL),
+        ]
+
+        # Explicit classification on tasks to populate all_kinds properly
+        for t in tasks:
+            t.all_kinds = [t.kind]
+
+        filtered = task_logic.today_tasks(tasks, self.config, week=2)
+        filtered_texts = {t.text for t in filtered}
+
+        self.assertIn("T1 #today", filtered_texts)
+        self.assertIn("T2 #urgent", filtered_texts)
+        self.assertIn("T3", filtered_texts)
+        self.assertIn("T4", filtered_texts)
+        self.assertNotIn("T5", filtered_texts)
+        self.assertIn("T6", filtered_texts)
+        self.assertNotIn("T7 #today", filtered_texts)
+        self.assertNotIn("T8", filtered_texts)
+
 
 if __name__ == "__main__":
     unittest.main()
