@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import re
 from collections.abc import Iterable
 from typing import TypeVar
@@ -15,6 +16,32 @@ def render_week_pattern(pattern: str, week: int) -> str:
     except (IndexError, KeyError):
         # Fallback to direct replacement for robustness
         return pattern.replace("{week}", str(week))
+
+
+def infer_week_from_path(path_text: str, config: AppConfig) -> int | None:
+    """Extracts a week number from a path string based on config patterns."""
+    lowered = path_text.lower()
+    for pattern in config.active_week_source_patterns:
+        if "{week}" not in pattern:
+            match = re.search(pattern, lowered, re.IGNORECASE)
+            if match and match.groups():
+                try:
+                    return int(match.group(1))
+                except (ValueError, IndexError):
+                    pass
+            continue
+
+        # Use regex to capture the digits where {week} would be
+        regex_pattern = pattern.replace("{week}", r"(\d+)")
+        match = re.search(regex_pattern, lowered, re.IGNORECASE)
+        if match:
+            try:
+                val = int(match.group(1))
+                if 1 <= val <= config.total_weeks:
+                    return val
+            except (ValueError, IndexError):
+                pass
+    return None
 
 
 def is_todo_source(task: Task, config: AppConfig) -> bool:
@@ -72,28 +99,46 @@ def sort_tasks(tasks: Iterable[T], config: AppConfig, week: int) -> list[T]:
 
 
 def filter_kind(tasks: Iterable[Task], kind: TaskKind) -> list[Task]:
-    return [t for t in tasks if t.kind == kind]
+    return [t for t in tasks if kind in t.all_kinds]
 
 
 def active_kind_tasks(tasks: Iterable[Task], config: AppConfig, week: int, kind: TaskKind) -> list[Task]:
-    filtered = [t for t in tasks if t.kind == kind and is_active_task(t, config, week)]
+    filtered = [t for t in tasks if kind in t.all_kinds and is_active_task(t, config, week)]
     return sort_tasks(filtered, config, week)
 
-
+# TODO: use config to set this instead of hardcoding, also figure out why #urgent does not work but #today does.
+# ./dashboard and ./today does not display the dashboard for the day/week
+# should figure out how to customise this so its not as frustrating
 def is_today_task(task: Task, config: AppConfig, week: int) -> bool:
-    # 1. Explicit #today or #daily tags
-    if any(t.lower().strip() in {"#today", "#daily"} for t in task.tags):
+    if task.checked:
+        return False
+
+    tags = {t.lower().strip() for t in task.tags}
+
+    # 1. Tagged with #today (or today_tags from config)
+    today_tags_set = {t.lower().strip() for t in config.today_tags}
+    if any(t in tags for t in today_tags_set):
         return True
-        
-    # 2. Source file is a 'Today' note (e.g., Today.md, 2026-06-06.md)
-    # We check if the source filename contains 'today' or 'daily'
-    # or matches a date pattern (basic check)
+
+    # 2. Tagged with #urgent (or urgent_tags from config) or formally classified as URGENT
+    urgent_tags_set = {t.lower().strip() for t in config.urgent_tags}
+    if any(t in tags for t in urgent_tags_set) or TaskKind.URGENT in task.all_kinds:
+        return True
+
+    # 3. Due today or overdue
+    if task.due_date:
+        if task.due_date <= datetime.date.today():
+            return True
+
+    # 4. Required and tagged for the current week
+    if TaskKind.REQUIRED in task.all_kinds and task.week == week:
+        return True
+
+    # 5. Pinned or explicitly prioritized source file
     filename = task.source_file.name.lower()
     if "today" in filename or "daily" in filename:
         return True
         
-    # 3. Handle specific active sources like 'Inbox' as today's tasks if they are active
-    # but only if they don't have a future week tag.
     if "inbox" in filename and (task.week is None or task.week <= week):
         return True
 
@@ -104,33 +149,49 @@ def today_tasks(tasks: Iterable[Task], config: AppConfig, week: int) -> list[Tas
     """Tasks specifically scoped for today's immediate focus."""
     filtered = [
         t for t in tasks 
-        if t.kind == TaskKind.REQUIRED and is_active_task(t, config, week) and is_today_task(t, config, week)
+        if not t.checked and is_today_task(t, config, week)
+    ]
+    return sort_tasks(filtered, config, week)
+
+
+def behind_tasks(tasks: Iterable[Task], config: AppConfig, week: int) -> list[Task]:
+    """Helper for required/urgent TODOs and scheduled ideas from previous weeks, or tasks marked #backlog."""
+    filtered = [
+        t for t in tasks
+        if (
+            # Case 1: Overdue based on week
+            ((TaskKind.REQUIRED in t.all_kinds or TaskKind.URGENT in t.all_kinds or TaskKind.IDEA in t.all_kinds) 
+             and t.week is not None and t.week < week)
+            # Case 2: Explicitly marked as #backlog
+            or any("backlog" in tag.lower() for tag in t.tags)
+        )
     ]
     return sort_tasks(filtered, config, week)
 
 
 def current_tasks(tasks: Iterable[Task], config: AppConfig, week: int) -> list[Task]:
-    """Helper for current week's required TODOs."""
-    return active_kind_tasks(tasks, config, week, TaskKind.REQUIRED)
-
-
-def behind_tasks(tasks: Iterable[Task], config: AppConfig, week: int) -> list[Task]:
-    """Helper for required TODOs from previous weeks."""
+    """Helper for current week's required/urgent TODOs and scheduled ideas."""
     filtered = [
-        t for t in tasks 
-        if t.kind == TaskKind.REQUIRED and t.week is not None and t.week < week
+        t for t in tasks
+        if (
+            # REQUIRED or URGENT are always "current" if active
+            (TaskKind.REQUIRED in t.all_kinds or TaskKind.URGENT in t.all_kinds)
+            # IDEA is only current if explicitly scheduled for this week
+            or (TaskKind.IDEA in t.all_kinds and t.week == week)
+        )
+        and is_active_task(t, config, week)
     ]
     return sort_tasks(filtered, config, week)
 
 
 def upcoming_tasks(tasks: Iterable[Task], config: AppConfig, week: int) -> list[Task]:
-    """Helper for required TODOs in future weeks."""
+    """Helper for required/urgent TODOs and scheduled ideas in future weeks."""
     filtered = [
-        t for t in tasks 
-        if t.kind == TaskKind.REQUIRED and t.week is not None and t.week > week
+        t for t in tasks
+        if (TaskKind.REQUIRED in t.all_kinds or TaskKind.URGENT in t.all_kinds or TaskKind.IDEA in t.all_kinds)
+        and t.week is not None and t.week > week
     ]
     return sort_tasks(filtered, config, week)
-
 
 def scoped_tasks(tasks: Iterable[Task], config: AppConfig) -> list[Task]:
     return [t for t in tasks if is_todo_source(t, config)]

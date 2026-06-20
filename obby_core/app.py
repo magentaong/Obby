@@ -119,11 +119,16 @@ class ObbyApp:
             "/behind": (self.behind_tasks, "Behind Required Tasks"),
             "/upcoming": (self.upcoming_tasks, "Upcoming Required Tasks"),
             "/quests": (lambda: self.active_kind_tasks(TaskKind.REQUIRED), "Active Required Quests"),
+            "/quest": (lambda: self.active_kind_tasks(TaskKind.REQUIRED), "Active Required Quests"),
             "/todos": (lambda: self.active_kind_tasks(TaskKind.REQUIRED), "Active Required Quests"),
+            "/todo": (lambda: self.active_kind_tasks(TaskKind.REQUIRED), "Active Required Quests"),
             "/stretch": (lambda: self.active_kind_tasks(TaskKind.STRETCH), "Active Stretch Goals"),
+            "/bonus": (lambda: self.active_kind_tasks(TaskKind.STRETCH), "Active Stretch Goals"),
             "/optional": (lambda: self.active_kind_tasks(TaskKind.OPTIONAL), "Active Optional Tasks"),
             "/ideas": (lambda: self.active_kind_tasks(TaskKind.IDEA), "Active Idea Backlog"),
+            "/idea": (lambda: self.active_kind_tasks(TaskKind.IDEA), "Active Idea Backlog"),
             "/blocked": (lambda: self.active_kind_tasks(TaskKind.BLOCKED), "Active Blocked Tasks"),
+            "/stuck": (lambda: self.active_kind_tasks(TaskKind.BLOCKED), "Active Blocked Tasks"),
             "/unknown": (lambda: self.active_kind_tasks(TaskKind.UNKNOWN), "Active Unknown Tasks"),
             "/all-quests": (lambda: self.filter_scoped(TaskKind.REQUIRED), "All Scoped Required Quests"),
             "/all-stretch": (lambda: self.filter_scoped(TaskKind.STRETCH), "All Scoped Stretch Goals"),
@@ -162,11 +167,7 @@ class ObbyApp:
             return True
 
         if cmd_name.startswith("/"):
-            ui.error(f"Unknown command: {cmd_name}\n")
-            if ui.console.is_terminal:
-                self.interactive_menu()
-            else:
-                ui.info("Type /menu to see available commands.")
+            ui.error(f"Unknown command: {cmd_name}\nType /menu for available commands.")
             return True
 
         return False

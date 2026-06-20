@@ -40,6 +40,7 @@ Goal: make Obby easy for other people to adopt.
 - Add example note templates.
 - Move personal Missing Term config into an example profile.
 - Make default config generic.
+- Add ability to configure the folders while having an active chatting terminal.
 
 ## V0.3 - Obsidian Write-Back
 

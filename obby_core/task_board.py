@@ -78,10 +78,11 @@ class TaskBoard:
     def pending_todos(self) -> list[Task]:
         allowed = {kind.lower() for kind in self.config.candidate_task_kinds}
         allowed.add(TaskKind.UNKNOWN.value)
+        allowed.add(TaskKind.URGENT.value)
         return self.sorted_tasks([
             task
             for task in self.todo_scope_tasks()
-            if self.is_active_task(task) and task.kind.value in allowed
+            if self.is_active_task(task) and any(k.value in allowed for k in task.all_kinds)
         ])
 
     def candidate_tasks(self) -> list[Task]:
@@ -90,12 +91,13 @@ class TaskBoard:
         pinned_keys = self.state.get_list("candidate_pins")
         excluded_keys = set(self.state.get_list("candidate_exclusions"))
         allowed_kinds = {kind.lower() for kind in self.config.candidate_task_kinds}
+        allowed_kinds.add(TaskKind.URGENT.value)
 
         active_no_week = [
             task
             for task in scoped
             if task.week is None
-            and task.kind.value in allowed_kinds
+            and any(k.value in allowed_kinds for k in task.all_kinds)
             and self.is_active_source(str(task.source_file))
         ]
         pinned = [
@@ -103,12 +105,14 @@ class TaskBoard:
             for key in pinned_keys
             if key in scoped_by_key and key not in excluded_keys
         ]
+        
+        # Collect tasks from relevant lanes
         ordered = self.sorted_tasks([
             *self.current_tasks(),
             *active_no_week,
-            *[task for task in scoped if task.kind == TaskKind.BLOCKED],
+            *[task for task in scoped if TaskKind.BLOCKED in task.all_kinds],
             *self.behind_tasks(),
-            *[task for task in scoped if task.kind == TaskKind.STRETCH],
+            *[task for task in scoped if TaskKind.STRETCH in task.all_kinds],
         ])
 
         candidates: list[Task] = []
@@ -120,7 +124,7 @@ class TaskBoard:
                 key in seen_keys
                 or task.checked
                 or key in excluded_keys
-                or (key not in pinned_task_keys and task.kind.value not in allowed_kinds)
+                or (key not in pinned_task_keys and not any(k.value in allowed_kinds for k in task.all_kinds))
             ):
                 continue
             seen_keys.add(key)

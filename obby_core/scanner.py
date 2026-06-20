@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import datetime
 import re
 from pathlib import Path
 
+from . import task_logic
 from .models import AppConfig, NoteContext, Task
 
 # --- REGEX REGISTRY ---
@@ -69,6 +71,21 @@ def _parse_file(content: str, path: Path, ctx: NoteContext, config: AppConfig, s
             if not text:
                 continue
                 
+            # Explicit tag takes precedence, then filename inference
+            task_week = _extract_week(text, config)
+            if task_week is None:
+                task_week = task_logic.infer_week_from_path(str(path), config)
+
+            # Parse due date if pattern matches
+            due_date = None
+            if config.due_date_pattern:
+                due_match = re.search(config.due_date_pattern, text)
+                if due_match:
+                    try:
+                        due_date = datetime.date.fromisoformat(due_match.group(1))
+                    except ValueError:
+                        pass
+
             task = Task(
                 id=next_id,
                 text=text,
@@ -77,8 +94,9 @@ def _parse_file(content: str, path: Path, ctx: NoteContext, config: AppConfig, s
                 checked=is_done,
                 heading_path=list(heading_stack),
                 tags=TAG_RE.findall(text),
-                week=_extract_week(text),
+                week=task_week,
                 module=_extract_module(text, config),
+                due_date=due_date,
             )
             
             target = ctx.completed_tasks if is_done else ctx.tasks
@@ -127,7 +145,14 @@ def _is_ignored(path: Path, config: AppConfig) -> bool:
 def _clean_text(text: str) -> str:
     return re.sub(r"\s+", " ", text.rstrip()).strip()
 
-def _extract_week(text: str) -> int | None:
+def _extract_week(text: str, config: AppConfig) -> int | None:
+    if config.week_tag_pattern:
+        try:
+            match = re.search(config.week_tag_pattern, text)
+            if match and match.groups():
+                return int(match.group(1))
+        except (ValueError, IndexError, re.error):
+            pass
     match = WEEK_RE.search(text)
     return int(match.group(1)) if match else None
 

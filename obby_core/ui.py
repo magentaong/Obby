@@ -75,6 +75,7 @@ _prompt_session = PromptSession(
 
 KIND_STYLES = {
     TaskKind.REQUIRED: "bright_green",
+    TaskKind.URGENT: "bright_red",
     TaskKind.STRETCH: "cyan",
     TaskKind.OPTIONAL: "yellow",
     TaskKind.IDEA: "bright_magenta",
@@ -544,9 +545,17 @@ def _task_table(title: str, shown: list[Task], limit: int | None, total: int) ->
 
     for index, task in enumerate(shown, start=1):
         style = KIND_STYLES.get(task.kind, "grey70")
+        
+        # Display all kinds if multiple exist
+        if len(task.all_kinds) > 1:
+            kind_labels = [k.value[:3].upper() for k in task.all_kinds]
+            kind_text = " | ".join(kind_labels)
+        else:
+            kind_text = task.kind.value.upper()
+
         table.add_row(
             f"{index:02d}",
-            Text(task.kind.value.upper(), style=style),
+            Text(kind_text, style=style),
             task.text,
             task.module or "-",
             task.source_label,

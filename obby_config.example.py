@@ -75,6 +75,18 @@ TASK_TYPE_TAGS = {
     "blocked": ["#blocked", "#stuck"],
 }
 
+# Specific tags for prioritizing and filtering tasks
+TODAY_TAGS = ["#today", "#daily"]
+URGENT_TAGS = ["#urgent", "🔺"]
+REQUIRED_TAGS = ["#required", "#core", "#mustdo", "#must-do"]
+BLOCKED_TAGS = ["#blocked", "#stuck"]
+OPTIONAL_TAGS = ["#optional"]
+STRETCH_TAGS = ["#stretch"]
+
+# Patterns to extract weeks and due dates
+WEEK_TAG_PATTERN = r"#week/(\d+)"
+DUE_DATE_PATTERN = r"📅\s*(\d{4}-\d{2}-\d{2})"
+
 HEADING_RULES = {
     "required": ["required", "core", "must do", "must-do", "quests"],
     "stretch": ["stretch", "stretch goals"],

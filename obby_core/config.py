@@ -303,6 +303,16 @@ def resolve_config(args: argparse.Namespace) -> AppConfig:
     theme_raw = _cfg(module, "THEME", None, {})
     theme = Theme(**theme_raw) if isinstance(theme_raw, dict) else Theme()
 
+    task_type_tags = dict(_cfg(module, "TASK_TYPE_TAGS", None, DEFAULT_TASK_TYPE_TAGS))
+    today_tags = list(_cfg(module, "TODAY_TAGS", None, ["#today", "#daily"]))
+    urgent_tags = list(_cfg(module, "URGENT_TAGS", None, task_type_tags.get("urgent", ["#urgent", "🔺"])))
+    required_tags = list(_cfg(module, "REQUIRED_TAGS", None, task_type_tags.get("required", ["#required", "#core", "#mustdo", "#must-do"])))
+    blocked_tags = list(_cfg(module, "BLOCKED_TAGS", None, task_type_tags.get("blocked", ["#blocked", "#stuck"])))
+    optional_tags = list(_cfg(module, "OPTIONAL_TAGS", None, task_type_tags.get("optional", ["#optional"])))
+    stretch_tags = list(_cfg(module, "STRETCH_TAGS", None, task_type_tags.get("stretch", ["#stretch"])))
+    week_tag_pattern = str(_cfg(module, "WEEK_TAG_PATTERN", None, r"#week/(\d+)"))
+    due_date_pattern = str(_cfg(module, "DUE_DATE_PATTERN", None, r"📅\s*(\d{4}-\d{2}-\d{2})"))
+
     return AppConfig(
         app_name=str(_cfg(module, "APP_NAME", "OBBY_APP_NAME", "Obby")),
         subtitle=str(
@@ -385,4 +395,12 @@ def resolve_config(args: argparse.Namespace) -> AppConfig:
                 {"required_done": 100, "stretch_done": 50, "blocked_seen": 10},
             )
         ),
+        today_tags=today_tags,
+        urgent_tags=urgent_tags,
+        required_tags=required_tags,
+        blocked_tags=blocked_tags,
+        optional_tags=optional_tags,
+        stretch_tags=stretch_tags,
+        week_tag_pattern=week_tag_pattern,
+        due_date_pattern=due_date_pattern,
     )
